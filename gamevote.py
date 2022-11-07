@@ -26,11 +26,7 @@ discordClient = discord.Client(intents=discordIntents)
 
 @discordClient.event
 async def on_ready():
-    if CONFIG['DEV']['useTestChannel'] == 'True':
-        print('Running in dev mode, discord updates will be written to test channel...')
-        channel = await discordClient.fetch_channel(CONFIG['DEV']['testChannelId'])
-    else:
-        channel = await discordClient.fetch_channel(CONFIG['DISCORD']['discordChannelId'])
+    channel = await discordClient.fetch_channel(CONFIG['DISCORD']['discordChannelId'])
 
     # Read Existing Spreadsheet
     print('Read Existing Spreadsheet')
@@ -245,11 +241,13 @@ async def writeGamesToDiscord(games, channel):
 
     messagesToSend = [ {'total_votes': game['total_votes'], 'messageText': messageTemplate.safe_substitute(game)} for
                         game in games.values() if game['vetoed'] == 'FALSE' and game['played'] == 'FALSE' ]
-    messagesToSend.sort(key=lambda x: int(x['total_votes']), reverse=True)
+    messagesToSend.sort(key=lambda x: int(x['total_votes']), reverse=False)
 
     for message in messagesToSend:
         message = await channel.send(message['messageText'])
         # await message.edit(suppress=True)
+    
+    await channel.send(CONFIG['GENERAL']['instructions'])
 
 async def discordClearChannel(channel):
     messages = []
